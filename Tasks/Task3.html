@@ -1,0 +1,44 @@
+<h2 class="course-page-header">
+    Task 3 - Modeling     <a class="coursera-reporter-link" title="Click here if you're experiencing technical problems or found errors in the course materials." target="_blank" href="https://accounts.coursera.org/i/zendesk/courserahelp?return_to=https://learner.coursera.help/hc/">
+      Help Center
+    </a>
+    <a data-coursera-admin-helpwidget-link rel="help" href="https://class.coursera.org/mooc/help/pages/setup" title="Course Page Setup" style="display:none;">Learn more.</a>
+</h2>
+
+
+<p>The goal here is to build your first simple model for the relationship between words. This is the first step in building a predictive text mining application. You will explore simple models and discover more complicated modeling techniques. </p>
+<p><em>Tasks to accomplish</em></p>
+<ol><li>Build basic n-gram model - using the exploratory analysis you performed, build a basic <a href="http://en.wikipedia.org/wiki/N-gram" title="Link: http://en.wikipedia.org/wiki/N-gram">n-gram model</a> for predicting the next word based on the previous 1, 2, or 3 words.</li>
+<li>Build a model to handle unseen n-grams - in some cases people will want to type a combination of words that does not appear in the corpora. Build a model to handle cases where a particular n-gram isn't observed. </li>
+</ol><p><em>Questions to consider</em></p>
+<ol><li>How can you efficiently store an n-gram model (think Markov Chains)? </li>
+<li>How can you use the knowledge about word frequencies to make your model smaller and more efficient?</li>
+<li>How many parameters do you need (i.e. how big is n in your n-gram model)?</li>
+<li>Can you think of simple ways to "smooth" the probabilities (think about giving all n-grams a non-zero probability even if they aren't observed in the data) ?</li>
+<li>How do you evaluate whether your model is any good? </li>
+<li>How can you use <a href="http://en.wikipedia.org/wiki/Katz%27s_back-off_model">backoff models</a> to estimate the probability of unobserved n-grams?</li>
+</ol><p><em>Hints, tips, and tricks</em></p>
+<p>As you develop your prediction model, two key aspects that you will have to keep in mind are the size and runtime of the algorithm. These are defined as:</p>
+<ol><li>
+<strong>Size</strong>: the amount of memory (physical RAM) required to run the model in R</li>
+<li>
+<strong>Runtime</strong>: The amount of time the algorithm takes to make a prediction given the acceptable input</li>
+</ol><p>Your goal for this prediction model is to minimize both the size and runtime of the model in order to provide a reasonable experience to the user. </p>
+<p>Keep in mind that currently available predictive text models can run on mobile phones, which typically have limited memory and processing power compared to desktop computers. Therefore, you should consider very carefully (1) how much memory is being used by the objects in your workspace; and (2) how much time it is taking to run your model. Ultimately, your model will need to run in a Shiny app that runs on the <a href="https://www.shinyapps.io">shinyapps.io</a> server.</p>
+<p><em>Tips, tricks, and hints</em></p>
+<p>Here are a few tools that may be of use to you as you work on their algorithm:</p>
+<ul><li>
+<code>object.size()</code>: this function reports the number of bytes that an R object occupies in memory</li>
+<li>
+<code>Rprof()</code>: this function runs the profiler in R that can be used to determine where bottlenecks in your function may exist. The <code>profr</code> package (available on CRAN) provides some additional tools for visualizing and summarizing profiling data.</li>
+<li>
+<code>gc()</code>: this function runs the garbage collector to retrieve unused RAM for R. In the process it tells you how much memory is currently being used by R.</li>
+</ul><p>There will likely be a tradeoff that you have to make in between size and runtime. For example, an algorithm that requires a lot of memory, may run faster, while a slower algorithm may require less memory. You will have to find the right balance between the two in order to provide a good experience to the user.</p>
+<hr>
+<div>
+    <div style="float:left">
+    	    	    </div>
+    <div style="float:right;text-align:right;font-size:10px;">
+    	Created Tue 26 Aug 2014  1:15 AM CST<br>
+    	Last Modified Wed 29 Oct 2014  8:12 PM CST    </div>
+</div>
