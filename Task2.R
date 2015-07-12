@@ -24,44 +24,66 @@ close(con2)
 close(con3)
 rm(con1, con2, con3)
 
-# 
 
-# Clean data
-blogs.docs <- iconv(blogs.docs, "UTF-8", "ASCII", "?")
-blogs.docs <- tolower(blogs.docs)
-blogs.docs <- removePunctuation(blogs.docs)
-blogs.docs <- removeWords(blogs.docs, stopwords("english"))
-blogs.docs <- stripWhitespace(blogs.docs)
+# Clean text
 
-news.docs <- iconv(news.docs, "UTF-8", "ASCII", "?")
-news.docs <- tolower(news.docs)
-news.docs <- removePunctuation(news.docs)
-news.docs <- removeWords(news.docs, stopwords("english"))
-news.docs <- stripWhitespace(news.docs)
+Clean_Docs <- function(docs) {
+    docs.cl <- iconv(docs, "UTF-8", "ASCII", "")
+    docs.cl <- removePunctuation(docs.cl)
+    docs.cl <- stripWhitespace(docs.cl)
+}
 
-twitter.docs <- iconv(twitter.docs, "UTF-8", "ASCII", "?")
-twitter.docs <- tolower(twitter.docs)
-twitter.docs <- removePunctuation(twitter.docs)
-twitter.docs <- removeWords(twitter.docs, stopwords("english"))
-twitter.docs <- stripWhitespace(twitter.docs)
+blogs.docs <- unlist( lapply(blogs.docs, Clean_Docs) )
+news.docs <- unlist( lapply(news.docs, Clean_Docs) )
+twitter.docs <- unlist( lapply(twitter.docs, Clean_Docs) )
 
-# Select the samples for Corpus
+#blogs.docs <- iconv(blogs.docs, "UTF-8", "ASCII", "?")
+#blogs.docs <- tolower(blogs.docs)
+#blogs.docs <- removePunctuation(blogs.docs)
+#blogs.docs <- removeWords(blogs.docs, stopwords("english"))
+#blogs.docs <- stripWhitespace(blogs.docs)
+#
+#news.docs <- iconv(news.docs, "UTF-8", "ASCII", "?")
+#news.docs <- tolower(news.docs)
+#news.docs <- removePunctuation(news.docs)
+#news.docs <- removeWords(news.docs, stopwords("english"))
+#news.docs <- stripWhitespace(news.docs)
+#
+#twitter.docs <- iconv(twitter.docs, "UTF-8", "ASCII", "?")
+#twitter.docs <- tolower(twitter.docs)
+#twitter.docs <- removePunctuation(twitter.docs)
+#twitter.docs <- removeWords(twitter.docs, stopwords("english"))
+#witter.docs <- stripWhitespace(twitter.docs)
+
+load("../Capstone_Cleaned.RData")
+
+# Split words in every document
+blogs.tokens <- strsplit(blogs.docs, " ")
+sort( table( unlist(blogs.tokens) ), decreasing = TRUE)[1:100]
+
+# Select the samples for build corpus
 ## I have to consider the number of characters in a document!
-hist( log10( sort( nchar(blogs.docs), decreasing = TRUE) ) )
-hist( log10( sort( nchar(news.docs), decreasing = TRUE) ) )
-hist( log10( sort( nchar(twitter.docs), decreasing = TRUE) ) )
 
-set.seed(100)
-(blogs.corpus <-Corpus(VectorSource(blogs.docs[sample(1:length(blogs.docs), round(length(blogs.docs)*.3, digits=0) )]), readerControl = list(language = "en_US") ))
-set.seed(100)
-(news.corpus <-Corpus(VectorSource(news.docs[sample(1:length(news.docs), round(length(news.docs)*.1, digits=0) )]), readerControl = list(language = "en_US") ))
-set.seed(100)
-(twitter.corpus <-Corpus(VectorSource(twitter.docs[sample(1:length(twitter.docs), round(length(twitter.docs)*.1, digits=0) )]), readerControl = list(language = "en_US") ))
+## Explore the information density
+hist( log10( sort( nchar(blogs.docs), decreasing = TRUE) ), main = "Blog documents", ylab = "Number of documents", xlab = "Logged length of blog document")
+abline(v = round ( log10( summary( nchar(blogs.docs) )[3] ), digits=0 ), col="red")
+hist( log10( sort( nchar(news.docs), decreasing = TRUE) ), main = "News documents", ylab = "Number of documents", xlab = "Logged length of news document")
+abline(v = round ( log10( summary( nchar(news.docs) )[3] ), digits=0 ), col="red")
+hist( ( sort( nchar(twitter.docs), decreasing = TRUE) ), main = "Twitter documents", ylab = "Number of documents", xlab = "Length of news document" )
+abline(v = round ( summary( nchar(twitter.docs) )[2], digits=0 ), col="red")
+## blogs had > 100 characters; news had > 100 characters; twitter <= 24 characters
+
+## Generate corpus
+(blogs.corpus <-Corpus(VectorSource(blogs.docs[nchar(blogs.docs) > 100]), readerControl = list(language = "en_US") ))
+(news.corpus <-Corpus(VectorSource(news.docs[nchar(news.docs) > 100]), readerControl = list(language = "en_US") ))
+(twitter.corpus <-Corpus(VectorSource(twitter.docs[nchar(twitter.docs) <= 24]), readerControl = list(language = "en_US") ))
 
 
 # Create Term-Document Matrices
 blogs.dtm <- DocumentTermMatrix(blogs.corpus)
+blogs.dtm <- DocumentTermMatrix(blogs.docs)
 
+blogs.dtm2 <- removeSparseTerms(blogs.dtm, 0.7)
 
 #gsub( "[.|,|?|:]", "", readLines(con2, 2) )
 
@@ -75,3 +97,6 @@ zipfile <- "./data/Swiftkey.zip"
 #zipfile <- paste0(zipfile, ".zip")
 Swifty.corpus <- Corpus(ZipSource(zipfile, recursive = TRUE))
 file.remove(zipfile)
+
+docs.cl <- removeWords(docs.cl, stopwords("english"))
+docs.cl <- tolower(docs.cl)
