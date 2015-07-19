@@ -2,9 +2,10 @@
 ## Sys.setlocale("LC_TIME",locale = "en_US.UTF-8")
 
 # Use text mining package
-library(tm)
+#library(tm)
 library(tau)
 library(stringi)
+library(ngram)
 
 # Import the raw data
 
@@ -59,6 +60,22 @@ load("../Capstone_Cleaned.RData")
 
 # Split words in every document
 blogs.tokens <- strsplit(blogs.docs, " ")
+news.tokens <- strsplit(news.docs, " ")
+twitter.tokens <- strsplit(twitter.docs, " ")
+
+
+# Explore the distributions of 1-gram
+blogs.tokensdist <- log10( table( unlist(blogs.tokens) ) )
+hist( blogs.tokensdist[blogs.tokensdist > 0] )
+
+news.tokensdist <- log10( table( unlist(news.tokens) ) )
+hist( news.tokensdist[news.tokensdist > 0] )
+
+twitter.tokensdist <- log10( table( unlist(twitter.tokens) ) )
+hist( twitter.tokensdist[twitter.tokensdist > 0] )
+
+# 
+
 sort( table( unlist(blogs.tokens) ), decreasing = TRUE)[1:100]
 
 # Select the samples for build corpus
