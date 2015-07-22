@@ -64,7 +64,7 @@ news.tokens <- strsplit(news.docs, " ")
 twitter.tokens <- strsplit(twitter.docs, " ")
 
 
-# Explore the distributions of 1-gram
+# Explore the distributions of single word
 blogs.tokensdist <- log10( table( unlist(blogs.tokens) ) )
 hist( blogs.tokensdist[blogs.tokensdist > 0] )
 
@@ -78,8 +78,24 @@ hist( twitter.tokensdist[twitter.tokensdist > 0] )
 
 sort( table( unlist(blogs.tokens) ), decreasing = TRUE)[1:100]
 
+# summarize 2-gram
+## Erase one-word docs
+blogs.docs <- blogs.docs[grep(" ", blogs.docs)]
+
+blogs.tokens <- blogs.docs[grep(" ", blogs.docs)]
+
+blogs.docs.2gram <- list()
+i = 1
+for(i in 1:length(blogs.docs)){
+    blogs.docs.2gram[i] <- list(get.ngrams( ngram(blogs.docs[i], n = 2) ))
+    i = i + 1
+}
+
+
 # Select the samples for build corpus
 ## I have to consider the number of characters in a document!
+
+
 
 ## Explore the information density
 hist( log10( sort( nchar(blogs.docs), decreasing = TRUE) ), main = "Blog documents", ylab = "Number of documents", xlab = "Logged length of blog document")
