@@ -1,3 +1,8 @@
+library(koRpus)
+library(tm)
+library(tau)
+library(stringi)
+
 S <-c(
     c("The guy in front of me just bought a pound of bacon, a bouquet, and a case of"),
     c("You're the reason why I smile everyday. Can you follow me please? It would mean the"),
@@ -24,11 +29,10 @@ A <- rbind(
     c("insensitive","asleep","insane","callous")
 )
 
-# Give prior probability to unknown words
-LAMBA <- .95
-Training.unimodel.tai <- LAMBA*Training.unimodel + (1 - LAMBA)*(1/length(Training.unimodel))
 
 # Set up the function to solve the quiz
+
+# Estimate the Probabilities by Unimodel
 UNI.P <- function(x, y){
     x.P <- Training.unimodel.tai[ removePunctuation( unlist( strsplit( stripWhitespace( iconv(x, "UTF-8", "ASCII", "")  ), "[ |']" ) ) ) ]
     y.P <- Training.unimodel.tai[y]
@@ -43,3 +47,20 @@ for (i in 1:10){
 }
 
 print( UNI.P(S[3],A[3,]) )
+
+# Estimate the Probabilities by Bimodel
+BI.P <- function(x, y){
+    tmp <- rep(0,4)
+    x.raw <- paste0(paste("si", removePunctuation( stripWhitespace( iconv(x, "UTF-8", "ASCII", "")  ) ) , " "), paste(y,"se"))
+    for(i in 1:length(x.raw)){
+        y.bi <- names( textcnt(x.raw[i], tolower = FALSE, method = "string", n = 2) ) 
+        y.P <- Training.bi.df[y.bi,"p_smooth_bigrams"]
+        y.P[is.na(y.P)] = (1 - .95)
+        tmp[i] = sum(log(y.P))
+    }
+    return(cbind(y, round(tmp, digits = 2) ))
+}
+
+for (i in 1:10){
+    print( BI.P(S[i],A[i,]) )
+}
