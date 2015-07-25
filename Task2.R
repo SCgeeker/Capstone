@@ -81,7 +81,6 @@ sort( table( unlist(blogs.tokens) ), decreasing = TRUE)[1:100]
 # summarize 2-gram
 ## Erase one-word docs
 blogs.docs <- blogs.docs[grep(" ", blogs.docs)]
-
 blogs.tokens <- blogs.docs[grep(" ", blogs.docs)]
 
 blogs.docs.2gram <- list()
