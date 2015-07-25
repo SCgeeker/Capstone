@@ -55,7 +55,7 @@ BI.P <- function(x, y){
     for(i in 1:length(x.raw)){
         y.bi <- names( textcnt(x.raw[i], tolower = FALSE, method = "string", n = 2) ) 
         y.P <- Training.bi.df[y.bi,"p_smooth_bigrams"]
-        y.P[is.na(y.P)] = (1 - .95)
+        y.P[is.na(y.P)] = (1 - max(LAMBA.bi))
         tmp[i] = sum(log(y.P))
     }
     return(cbind(y, round(tmp, digits = 2) ))
@@ -64,3 +64,5 @@ BI.P <- function(x, y){
 for (i in 1:10){
     print( BI.P(S[i],A[i,]) )
 }
+
+BI.P(S[1],A[1,])
