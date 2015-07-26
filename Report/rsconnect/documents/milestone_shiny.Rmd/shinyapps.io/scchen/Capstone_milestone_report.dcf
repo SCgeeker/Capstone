@@ -1,0 +1,9 @@
+name: Capstone_milestone_report
+account: scchen
+server: shinyapps.io
+bundleId: 226144
+url: https://scchen.shinyapps.io/Capstone_milestone_report
+when: 1437902391.51622
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: ../final/

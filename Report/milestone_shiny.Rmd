@@ -1,11 +1,13 @@
 ---
-title: 'Capstone Project: Milestone report'
+title: "Analyze English sentence in the rough language models"
 author: "Sau-Chin Chen"
-date: "2015/7/25"
-output: 
+date: "2015/7/26"
+output:
   html_document:
-    keep_md: yes
     toc: yes
+runtime: shiny
+resource_files:
+- Capstone_BuiltModels.RData
 ---
 # Overview
 This report summarizes our work on *SwiftyKey Data* this month. We demonstrate a rough app to show the implication of language models.  
@@ -21,7 +23,7 @@ fileUrl <- "https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-S
 download.file(fileUrl, destfile = "./data/Swiftkey.zip")
 ```
 To preview the content of this zip file, we decompsed it to **final** folder and display the files compressed in the zip file:
-```{r echo=FALSE, results='markup'}
+```{r echo=FALSE, results='markup', cache=TRUE}
 dir("../final/", recursive = TRUE)
 ```
 There are the documents collected from blogs, news, and twitters in four langauges/countries. This project concentrates on the documents collected from USA(English). To save the computation time and make sure the words encoded in the same protocol, we loaded the raw documents from the zip file as following:  
@@ -159,4 +161,60 @@ Training.bi.df <- data.frame(
 )
 ```
 
-The following shiny app demonstrate how to predict the readibility of a sentence in use of our models. You will access our app on our submission page.
+At teh end of this report, a rough shiny app demonstrates how to predict the readibility of a sentence in use of our models. You will see six lines below the input column. The first line presents the uni-gram splited from the inputed sentence. Second line lists the logged esimations of uni-gram model of each uni-gram. Third line reports the likelihood of this sentence estimated by our uni-gram model. Forth line presents the bi-gram splited from the inputed sentence. Fifth line lists the logged esimations of bi-gram model of each bi-gram. The last line reports the likelihood of this sentence estimated by our bi-gram model. 
+
+Due to short of working time, the presentation layout of this app will be improved in the final report. You will find some esimtations are positive rahter than negative. There the the computation problems in the establish of language models yet to be addressed. 
+
+
+```{r TEXT, echo=FALSE}
+fluidPage(
+inputPanel(
+  textInput("InitSen", label = "Type a sentence in the column:", value = "I'll complete this project."),
+  helpText("You can type any sentence as like the example.")
+),
+renderText({
+    x <- Training.unimodel.smooth[removePunctuation( unlist( strsplit( stripWhitespace( iconv(input$InitSen, "UTF-8", "ASCII", "")  ), "[ |']" ) ) ) ]
+    x[is.na(x)] <- (1 - LAMBA.uni)
+    as.character(names(x))
+    
+}),
+renderText({
+    x <- Training.unimodel.smooth[removePunctuation( unlist( strsplit( stripWhitespace( iconv(input$InitSen, "UTF-8", "ASCII", "")  ), "[ |']" ) ) ) ]
+    x[is.na(x)] <- (1 - LAMBA.uni)
+    x
+}),
+renderText({
+    x <- Training.unimodel.smooth[removePunctuation( unlist( strsplit( stripWhitespace( iconv(input$InitSen, "UTF-8", "ASCII", "")  ), "[ |']" ) ) ) ]
+    x[is.na(x)] <- (1 - LAMBA.uni)
+    sum(x)
+}),
+renderText({
+        x <- paste0(paste("si", removePunctuation( stripWhitespace( iconv(input$InitSen, "UTF-8", "ASCII", "")  ) ) , " "), "se")
+        for(i in 1:length(x)){
+        x.bi <- names( textcnt(x[i], tolower = FALSE, method = "string", n = 2) ) 
+        x.P <- Training.bi.df[x.bi,"p_smooth_bigrams"]
+        x.P[is.na(x.P)] = (1 - max(LAMBA.bi))
+    }
+    x.bi
+}),
+renderText({
+        x <- paste0(paste("si", removePunctuation( stripWhitespace( iconv(input$InitSen, "UTF-8", "ASCII", "")  ) ) , " "), "se")
+        for(i in 1:length(x)){
+        x.bi <- names( textcnt(x[i], tolower = FALSE, method = "string", n = 2) ) 
+        x.P <- Training.bi.df[x.bi,"p_smooth_bigrams"]
+        x.P[is.na(x.P)] = (1 - max(LAMBA.bi))
+    }
+    print(log(x.P) )
+}),
+renderText({
+        x <- paste0(paste("si", removePunctuation( stripWhitespace( iconv(input$InitSen, "UTF-8", "ASCII", "")  ) ) , " "), "se")
+        for(i in 1:length(x)){
+        x.bi <- names( textcnt(x[i], tolower = FALSE, method = "string", n = 2) ) 
+        x.P <- Training.bi.df[x.bi,"p_smooth_bigrams"]
+        x.P[is.na(x.P)] = (1 - max(LAMBA.bi))
+    }
+    sum(log(x.P))
+})
+)
+```
+
