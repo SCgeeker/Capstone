@@ -8,6 +8,7 @@ output:
 runtime: shiny
 resource_files:
 - Capstone_BuiltModels.RData
+- global.R
 ---
 # Overview
 This report summarizes our work on *SwiftyKey Data* this month. We demonstrate a rough app to show the implication of language models.  
