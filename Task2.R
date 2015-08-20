@@ -2,7 +2,7 @@
 ## Sys.setlocale("LC_TIME",locale = "en_US.UTF-8")
 
 # Use text mining package
-#library(tm)
+library(tm)
 library(tau)
 library(stringi)
 #library(ngram)
@@ -25,68 +25,43 @@ close(con2)
 close(con3)
 rm(con1, con2, con3)
 
-
 # Clean text
-
 Clean_Docs <- function(docs) {
     docs.cl <- iconv(docs, "UTF-8", "ASCII", "")
     docs.cl <- removePunctuation(docs.cl)
     docs.cl <- stripWhitespace(docs.cl)
 }
 
-# Erase docs have less than 4 words
+## Erase docs have less than 4 words
 blogs.docs <- unlist( lapply(blogs.docs, Clean_Docs) )
-blogs.docs <- blogs.docs[(stri_count_fixed(blogs.docs, " "))>2]
+#blogs.docs <- blogs.docs[(stri_count_fixed(blogs.docs, " "))>2]
 news.docs <- unlist( lapply(news.docs, Clean_Docs) )
-news.docs <- news.docs[(stri_count_fixed(news.docs, " "))>2]
+#news.docs <- news.docs[(stri_count_fixed(news.docs, " "))>2]
 twitter.docs <- unlist( lapply(twitter.docs, Clean_Docs) )
-twitter.docs <- twitter.docs[(stri_count_fixed(twitter.docs, " "))>2]
-
-#blogs.docs <- iconv(blogs.docs, "UTF-8", "ASCII", "?")
-#blogs.docs <- tolower(blogs.docs)
-#blogs.docs <- removePunctuation(blogs.docs)
-#blogs.docs <- removeWords(blogs.docs, stopwords("english"))
-#blogs.docs <- stripWhitespace(blogs.docs)
-#
-#news.docs <- iconv(news.docs, "UTF-8", "ASCII", "?")
-#news.docs <- tolower(news.docs)
-#news.docs <- removePunctuation(news.docs)
-#news.docs <- removeWords(news.docs, stopwords("english"))
-#news.docs <- stripWhitespace(news.docs)
-#
-#twitter.docs <- iconv(twitter.docs, "UTF-8", "ASCII", "?")
-#twitter.docs <- tolower(twitter.docs)
-#twitter.docs <- removePunctuation(twitter.docs)
-#twitter.docs <- removeWords(twitter.docs, stopwords("english"))
-#witter.docs <- stripWhitespace(twitter.docs)
-
-# load("../Capstone_Cleaned.RData")
-
-# Split words in every document
-##blogs.tokens <- strsplit(blogs.docs, " ")
-##news.tokens <- strsplit(news.docs, " ")
-##twitter.tokens <- strsplit(twitter.docs, " ")
+#twitter.docs <- twitter.docs[(stri_count_fixed(twitter.docs, " "))>2]
 
 
 # Explore the distributions of word frequencies
-blogs.words <- textcnt(blogs.docs, method = "string", n = 1L)
+blogs.words <- textcnt(blogs.docs, method = "string", n = 1L, decreasing = TRUE)
 ##summary(log10(blogs.words)[log10(blogs.words) > 1])
 ##round(max(log10(blogs.words) ), digit=0 )
-blogs.dist <- hist( log10(blogs.words), breaks = 0:(round(max(log10(blogs.words) ), digit=0 ) +1 ), xlab = "Word Frequencies (log10)", ylab="Counts in blogs", main = "Distribution of Log Word Frequency")
+blogs.dist <- hist( log10(blogs.words), breaks = 0:(round(max(log10(blogs.words) ), digit=0 ) +1 ), xlab = "Logged Word Frequencies", ylab="Counts in blogs", main = "Distribution of Word Frequency(Blogs)")
 text(blogs.dist$mids, blogs.dist$counts + 10000, round(blogs.dist$density, digits = 2) )
 abline( v =summary(log10(blogs.words))[3:4], col = c("red","blue"))
 
-news.words <- textcnt(news.docs, method = "string", n = 1L)
+news.words <- textcnt(news.docs, method = "string", n = 1L, decreasing = TRUE)
 ##summary(log10(news.words)[log10(news.words) > 1])
-news.dist <- hist( log10(news.words), breaks = 0:(round(max(log10(news.words) ), digit=0 ) +1 ), xlab = "Word Frequencies (log10)", ylab="Counts in news", main = "Distribution of Log Word Frequency")
+news.dist <- hist( log10(news.words), breaks = 0:(round(max(log10(news.words) ), digit=0 ) +1 ), xlab = "Logged Word Frequencies", ylab="Counts in news", main = "Distribution of Word Frequency(News)")
 text(news.dist$mids, news.dist$counts + 10000, round(news.dist$density, digits = 2) )
 abline( v =summary(log10(news.words))[3:4], col = c("red","blue"))
 
-twitter.words <- textcnt(twitter.docs, method = "string", n = 1L)
+twitter.words <- textcnt(twitter.docs, method = "string", n = 1L, decreasing = TRUE)
 ## summary(log10(twitter.words)[log10(twitter.words) > 1])
-twitter.dist <- hist( log10(twitter.words), breaks = 0:(round(max(log10(twitter.words) ), digit=0 ) + 1), xlab = "Word Frequencies (log10)", ylab="Counts in twitter", main = "Distribution of Log Word Frequency")
+twitter.dist <- hist( log10(twitter.words), breaks = 0:(round(max(log10(twitter.words) ), digit=0 ) + 1), xlab = "Logged Word Frequencies", ylab="Counts in twitter", main = "Distribution of Word Frequency(twitter)")
 text(twitter.dist$mids, twitter.dist$counts + 10000, round(twitter.dist$density, digits = 2) )
 abline( v =summary(log10(twitter.words))[3:4], col = c("red","blue"))
+
+
 
 ##old_objs <- ls()
 US_docs <- c(blogs.docs, news.docs, twitter.docs)
@@ -98,6 +73,7 @@ abline( v =summary(log10(US_words))[3:4], col = c("red","blue"))
 
 
 
+##########################################
 # Find the cut line
 summary( stri_count_fixed(US_docs, " ") )
 
@@ -147,7 +123,6 @@ sort( table( unlist(blogs.tokens) ), decreasing = TRUE)[1:100]
 # summarize 2-gram
 ## Erase one-word docs
 blogs.docs <- blogs.docs[grep(" ", blogs.docs)]
-
 blogs.tokens <- blogs.docs[grep(" ", blogs.docs)]
 
 blogs.docs.2gram <- list()
@@ -199,3 +174,30 @@ file.remove(zipfile)
 
 docs.cl <- removeWords(docs.cl, stopwords("english"))
 docs.cl <- tolower(docs.cl)
+
+
+
+#blogs.docs <- iconv(blogs.docs, "UTF-8", "ASCII", "?")
+#blogs.docs <- tolower(blogs.docs)
+#blogs.docs <- removePunctuation(blogs.docs)
+#blogs.docs <- removeWords(blogs.docs, stopwords("english"))
+#blogs.docs <- stripWhitespace(blogs.docs)
+#
+#news.docs <- iconv(news.docs, "UTF-8", "ASCII", "?")
+#news.docs <- tolower(news.docs)
+#news.docs <- removePunctuation(news.docs)
+#news.docs <- removeWords(news.docs, stopwords("english"))
+#news.docs <- stripWhitespace(news.docs)
+#
+#twitter.docs <- iconv(twitter.docs, "UTF-8", "ASCII", "?")
+#twitter.docs <- tolower(twitter.docs)
+#twitter.docs <- removePunctuation(twitter.docs)
+#twitter.docs <- removeWords(twitter.docs, stopwords("english"))
+#witter.docs <- stripWhitespace(twitter.docs)
+
+# load("../Capstone_Cleaned.RData")
+
+# Split words in every document
+##blogs.tokens <- strsplit(blogs.docs, " ")
+##news.tokens <- strsplit(news.docs, " ")
+##twitter.tokens <- strsplit(twitter.docs, " ")
