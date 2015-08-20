@@ -70,39 +70,14 @@ reshape_corpus <- function(current.text, FUN, ...) {
 
 # The inputed Corpus has to be the raw Corpus from the raw documents.
 #Training.docs <- reshape_corpus(Training.doc[1], convert_text_to_sentences)
-Training0001.docs <- convert_text_to_sentences(Training.doc[1:30000])
-Training0002.docs <- convert_text_to_sentences(Training.doc[30001:60000])
-Training0003.docs <- convert_text_to_sentences(Training.doc[60001:90000])
-Training0004.docs <- convert_text_to_sentences(Training.doc[90001:120000])
-Training0005.docs <- convert_text_to_sentences(Training.doc[120001:150000])
-Training0006.docs <- convert_text_to_sentences(Training.doc[150001:180000])
-Training0007.docs <- convert_text_to_sentences(Training.doc[180001:210000])
-Training0008.docs <- convert_text_to_sentences(Training.doc[210001:240000])
-Training0009.docs <- convert_text_to_sentences(Training.doc[240001:270000])
-Training0010.docs <- convert_text_to_sentences(Training.doc[270001:300000])
-Training0011.docs <- convert_text_to_sentences(Training.doc[300001:330000])
-Training0012.docs <- convert_text_to_sentences(Training.doc[330001:360000])
-Training0013.docs <- convert_text_to_sentences(Training.doc[360001:390000])
-Training0014.docs <- convert_text_to_sentences(Training.doc[390001:420000])
-Training0015.docs <- convert_text_to_sentences(Training.doc[420001:426966])
-
-Training.docs <- c(Training0001.docs, Training0002.docs, Training0003.docs, Training0004.docs, Training0005.docs,
-                   Training0006.docs, Training0007.docs, Training0008.docs, Training0009.docs, Training0010.docs,
-                   Training0011.docs, Training0012.docs, Training0013.docs, Training0014.docs, Training0015.docs)
-rm(Training0001.docs, Training0002.docs, Training0003.docs, Training0004.docs, Training0005.docs,
-   Training0006.docs, Training0007.docs, Training0008.docs, Training0009.docs, Training0010.docs,
-   Training0011.docs, Training0012.docs, Training0013.docs, Training0014.docs, Training0015.docs)
-
-save.image("../Capstone_Task4_ProcessingRawDocs.RData")
-
-Training.docs <- paste(paste("s0", Training.docs), "s9")
+Training.docs <- convert_text_to_sentences(Training.doc)
 
 # Build Corpus
-Training.Corpus <- VCorpus(VectorSource(Training.docs))
+TrainingCorpus <- VCorpus(VectorSource(Training.doc))
 
 #rm(Training.doc)
 
-save.image("../Capstone_Task4_ProcessingRawCorpus.RData")
+save.image("../Capstone_Task4_ProcessingRawNgrams.RData")
 
 # Clean Corpus
 # I refined the cleaning process based the two reports:
@@ -112,67 +87,71 @@ save.image("../Capstone_Task4_ProcessingRawCorpus.RData")
 # import badwords.txt
 #profanity <- readLines("badwords.txt")
 
-rm(Training.doc)
+
+rm(TrainingCorpus)
+
+save.image("../Capstone_Task4_ProcessingRawNgrams.RData")
+
 ## Reserve the upper letters, numbers, and stop words. Because the language models will have the best predictions.
 #TrainingCorpus <- tm_map(TrainingCorpus, tolower)
-Training.Corpus <- tm_map(Training.Corpus, iconv, "UTF-8", "ASCII", "")
-Training.Corpus <- tm_map(Training.Corpus, removePunctuation)
-Training.Corpus <- tm_map(Training.Corpus, stripWhitespace)
+TrainingCorpus <- tm_map(TrainingCorpus, iconv, "UTF-8", "ASCII", "")
+TrainingCorpus <- tm_map(TrainingCorpus, removePunctuation)
+TrainingCorpus <- tm_map(TrainingCorpus, stripWhitespace)
 #TrainingCorpus <- tm_map(TrainingCorpus, removeNumbers)                    
 #TrainingCorpus <- tm_map(TrainingCorpus, removeWords,c(stopwords("english"),"the","you","and","for","that","with","your","have","be","this","are","can","but","what"))
 #TrainingCorpus <- tm_map(TrainingCorpus, removeWords, profanity)
 
-save.image("../Capstone_Task4_ProcessingPreNgrams.RData")
+save.image("../Capstone_Task4_ProcessingRawNgrams.RData")
 
 
 # Tokenization
-docs_l <- length(Training.docs)
 unigram <- NULL
-i = 1  # stop at 393264
+i = 1
 while(i <= docs_l){
-    unigram <- c(unigram, NGramTokenizer(Training.Corpus[[i]], Weka_control(min = 1, max = 1)) )
+    unigram <- c(unigram, NGramTokenizer(TrainingCorpus[[i]], Weka_control(min = 1, max = 1)) )
     i = i+1
     print(i)
 }
+##unigram[grep("177", unigram )]
 unigram.freq <- data.frame(table(unigram))
 unigram.freq <- unigram.freq[order(unigram.freq$Freq, decreasing = TRUE),]
 
-save.image("../Capstone_Task4_ProcessingNgrams.RData")
+save.image("../Capstone_Task4_ProcessingRawNgrams.RData")
 
- bigram <- NULL
-i = 1
-while(i <= docs_l){
-    bigram <- c(bigram, NGramTokenizer(Training.Corpus[[i]], Weka_control(min = 2, max = 2)) )
-    i = i+1
-    print(i)
-}
-bigram.freq <- data.frame(table(bigram))
-bigram.freq <- bigram.freq[order(bigram.freq$Freq, decreasing = TRUE),]
+# set up unigram language model
+docs_total <- length(Training.docs)
+Vocab_Size <- sum(unigram.freq$Freq) # vocabulary size
+Lamda_uni <- .05 # unknown word probability
 
-save.image("../Capstone_Task4_ProcessingNgrams.RData")
+# Estimate the probability of each unigram: Maximal Likelihood 
+unigram.freq <- data.frame(unigram.freq, P.ml = unigram.freq$Freq/c(docs_total, rep(Vocab_Size,dim(unigram.freq)[1] - 1 )))
 
-trigram <- NULL
-i = 1
-while(i <= docs_l){
-    trigram <- c(trigram, NGramTokenizer(Training.Corpus[[i]], Weka_control(min = 3, max = 3)) )
-    i = i+1
-    print(i)
-}
+# Adjust unigram model
+unigram.freq <- data.frame(unigram.freq, P.adj = ( Lamda_uni*unigram.freq$P.ml + (1 - Lamda_uni)*(1/Vocab_Size) )  )
+
+save.image("../Capstone_Task5_ImprovedUnigramModel.RData")
+
+## Prepare raw bi-gram language model
+
+bigram <- paste(unigram[-length(unigram)], unigram[-1])
+bigram <- bigram[-grep("s9 s0", bigram)]
+
+
+save.image("../Capstone_Task4_ProcessingRawNgrams.RData")
+
+## Prepare raw tri-gram language model
+
+trigram <- paste(paste(unigram[1:(length(unigram) - 2)], unigram[2:(length(unigram) - 1)]), unigram[-c(1,2)])
+
+trigram <- trigram[-grep("^s9 s0", trigram)]
+trigram <- trigram[-grep("s9 s0$", trigram)]
+trigram <- trigram[-intersect( grep("^s0 ", trigram), grep(" s9$", trigram) ) ]
+
+save.image("../Capstone_Task4_ProcessingRawNgrams.RData")
+
 trigram.freq <- data.frame(table(trigram))
 trigram.freq <- trigram.freq[order(trigram.freq$Freq, decreasing = TRUE),]
 
+
+rm(bigram, trigram)
 save.image("../Capstone_Task4_ProcessingNgrams.RData")
-
-
-## Prepare raw tri-gram language model
-trigram.freq <- data.frame(trigram.freq, pre_bigram = substr(trigram.freq$trigram, 1,unlist(stri_locate_all_words(trigram.freq$trigram))[seq(5, length(trigram.freq$trigram)*6, by = 6)]) )
-##pre_bigram2 <- substr(trigram.freq$trigram, 1,unlist(stri_locate_all_words(trigram.freq$trigram))[seq(5, length(trigram.freq$trigram)*6, by = 6)])
-pre_bigram.freq <- data.frame(table(trigram.freq$pre_bigram))
-pre_bigram.freq <- pre_bigram.freq[order(pre_bigram.freq$Freq, decreasing = TRUE),]
-names(pre_bigram.freq) <- c("pre_bigram", "Bi_freq")
-
-trigram.dat <- full_join(trigram.freq, pre_bigram.freq)
-
-trigram.dat <- data.frame(trigram.dat, Tri.P = trigram.dat$Freq/trigram.dat$Bi_freq)
-trigram.dat$Tri.P[is.na(trigram.dat$Tri.P)] = 0
-trigram.dat$Tri.P[trigram.dat$Tri.P > 1] = 1
