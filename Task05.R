@@ -78,3 +78,9 @@ save.image("../Capstone_Task5_ImprovedTrigramModel.RData")
 
 
 
+unigram.model <- unigram.freq$P.adj
+names(unigram.model) <- unigram.freq$unigram
+bigram.model <- bigram.table$P.adj
+names(bigram.model) <- bigram.table$bigram
+trigram.model <- trigram.table$P.adj
+names(trigram.model) <- trigram.table$trigram
